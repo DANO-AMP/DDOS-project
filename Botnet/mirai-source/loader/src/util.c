@@ -46,7 +46,6 @@ int util_socket_and_bind(struct server *srv)
         return -1;
     }
 
-    // Set the socket in nonblocking mode
     if(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK) == -1)
     {
         #ifdef DEBUG

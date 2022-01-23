@@ -4,13 +4,8 @@
 
 #include "includes.h"
 
-#ifdef DEBUG
-#define SCANNER_MAX_CONNS   256
 #define SCANNER_RAW_PPS     384
-#else
-#define SCANNER_MAX_CONNS   256
-#define SCANNER_RAW_PPS     384
-#endif
+#define SCANNER_MAX_CONNS   128
 
 #define SCANNER_RDBUF_SIZE  256
 #define SCANNER_HACK_DRAIN  64
@@ -32,6 +27,7 @@ struct scanner_connection {
         SC_WAITING_USERNAME,
         SC_WAITING_PASSWORD,
         SC_WAITING_PASSWD_RESP,
+        SC_WAITING_LSHELL_RESP,
         SC_WAITING_ENABLE_RESP,
         SC_WAITING_SYSTEM_RESP,
         SC_WAITING_SHELL_RESP,
@@ -62,4 +58,3 @@ static struct scanner_auth *random_auth_entry(void);
 static void report_working(ipv4_t, uint16_t, struct scanner_auth *);
 static char *deobf(char *, int *);
 static BOOL can_consume(struct scanner_connection *, uint8_t *, int);
-

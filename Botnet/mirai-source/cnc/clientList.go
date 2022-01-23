@@ -4,7 +4,7 @@ import (
     "time"
     "math/rand"
     "sync"
-	"fmt"
+    "fmt"
 )
 
 type AttackSend struct {
@@ -51,12 +51,13 @@ func (this *ClientList) Distribution() map[string]int {
 
 func (this *ClientList) AddClient(c *Bot) {
     this.addQueue <- c
-	fmt.Printf("\033[1;37m[Device] \033[0;32mDanonino le a dado la beca --> \033[1;37m IP:\033[0;32m %s (%s)\n", c.conn.RemoteAddr(), c.source)
+    fmt.Printf("\x1b[1;31m[\x1b[1;32m!\x1b[1;31m] \x1b[1;31m[%s\x1b[1;31m] [\x1b[1;37m%s\x1b[1;31m] [\x1b[1;32mBot Connected\x1b[1;31m]\n", c.conn.RemoteAddr(), c.source)
 }
 
 func (this *ClientList) DelClient(c *Bot) {
     this.delQueue <- c
-	fmt.Printf("\033[1;37m[Device] \033[0;31mUno menos en Canarias -->\033[1;37m IP:\033[0;32m %s (%s)\n", c.conn.RemoteAddr(), c.source)
+    //fmt.Printf("\x1b[1;37m[\x1b[1;90m!\x1b[1;37m] \x1b[1;31m[%s\x1b[1;31m] [\x1b[1;37m%s\x1b[1;31m] [\x1b[1;90mBot Left\x1b[1;31m]\n", c.conn.RemoteAddr(), c.source)
+
 }
 
 func (this *ClientList) QueueBuf(buf []byte, maxbots int, botCata string) {

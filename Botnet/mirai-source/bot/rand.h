@@ -7,4 +7,4 @@
 void rand_init(void);
 uint32_t rand_next(void);
 void rand_str(char *, int);
-void rand_alpha_str(uint8_t *, int);
+void rand_alphastr(uint8_t *, int);
