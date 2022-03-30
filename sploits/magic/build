@@ -1,0 +1,3 @@
+#!/bin/sh
+
+g++ *.cpp -o magic -static -g -lpthread -s
