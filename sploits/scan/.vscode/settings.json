@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "stdint.h": "c",
+        "resp.h": "c",
+        "stdio.h": "c",
+        "socket.h": "c",
+        "inet.h": "c"
+    }
+}

