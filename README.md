@@ -23,3 +23,4 @@ https://t.me/+m394vF38qPFlZTk0
 
 
 **Support and contact: https://t.me/boradcast**
+**Spoof servers: https://t.me/boradcast**
