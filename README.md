@@ -17,13 +17,14 @@
 ALL TUTORIALS THAT U WILL NEED U CAN FIND IN HOW TO USE FOLDER OR FOLDER OF THAT SHIT THAT U WANT TO USE!
 ## USING
 
-## Free Layer 7
+## Free Layer 4 & 7
 https://t.me/website_down
 Free Layer 7 -->  700k r/s
+Free Layer 4 --> OVH DOWN SSH 
 
 * LOGS FREE 
 * APIs
-* BIG POWER LAYER 7
+* BIG POWER LAYER 4 & 7
 * FAST SUPPORT 
 * POWERFULL BYPASS
 
